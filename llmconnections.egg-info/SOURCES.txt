@@ -1,0 +1,12 @@
+LICENSE
+MANIFEST.in
+README.md
+requirements.txt
+setup.py
+llmconnections/__init__.py
+llmconnections/connections.py
+llmconnections.egg-info/PKG-INFO
+llmconnections.egg-info/SOURCES.txt
+llmconnections.egg-info/dependency_links.txt
+llmconnections.egg-info/requires.txt
+llmconnections.egg-info/top_level.txt
