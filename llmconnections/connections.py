@@ -1,62 +1,37 @@
-from typing import Literal
-
 class LLMConnections:
     def __init__(self):
         # OpenRouter models list
         self.openrouter_models = [
             # Add your OpenRouter models here
-             "openai/gpt-oss-20b:free",
+            "amazon/nova-2-lite-v1:free",
+            "tngtech/tng-r1t-chimera:free",
+            "allenai/olmo-3-32b-think:free",
+            "kwaipilot/kat-coder-pro:free",
+            "arcee-ai/trinity-mini:free",
+            "nvidia/nemotron-nano-12b-v2-vl:free",
+            "alibaba/tongyi-deepresearch-30b-a3b:free",
+            "meituan/longcat-flash-chat:free",
+            "nvidia/nemotron-nano-9b-v2:free",
+            "openai/gpt-oss-20b:free",
             "z-ai/glm-4.5-air:free",
             "qwen/qwen3-coder:free",
             "moonshotai/kimi-k2:free",
             "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
             "google/gemma-3n-e2b-it:free",
-            "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
-            "tencent/hunyuan-a13b-instruct:free",
             "tngtech/deepseek-r1t2-chimera:free",
-            "mistralai/mistral-small-3.2-24b-instruct:free",
-            "moonshotai/kimi-dev-72b:free",
-            "deepseek/deepseek-r1-0528-qwen3-8b:free",
-            "deepseek/deepseek-r1-0528:free",
-            "sarvamai/sarvam-m:free",
-            "mistralai/devstral-small-2505:free",
             "google/gemma-3n-e4b-it:free",
             "qwen/qwen3-4b:free",
-            "qwen/qwen3-30b-a3b:free",
-            "qwen/qwen3-8b:free",
-            "qwen/qwen3-14b:free",
             "qwen/qwen3-235b-a22b:free",
             "tngtech/deepseek-r1t-chimera:free",
-            "microsoft/mai-ds-r1:free",
-            "shisa-ai/shisa-v2-llama3.3-70b:free",
-            "arliai/qwq-32b-arliai-rpr-v1:free",
-            "agentica-org/deepcoder-14b-preview:free",
-            "moonshotai/kimi-vl-a3b-thinking:free",
-            "nvidia/llama-3.1-nemotron-ultra-253b-v1:free",
-            "google/gemini-2.5-pro-exp-03-25",
-            "qwen/qwen2.5-vl-32b-instruct:free",
-            "qwen/qwen2.5-vl-32b-instruct:free",
-            "deepseek/deepseek-chat-v3-0324:free",
-            "featherless/qwerky-72b:free",
             "mistralai/mistral-small-3.1-24b-instruct:free",
             "google/gemma-3-4b-it:free",
-            "rekaai/reka-flash-3:free",
+            "google/gemma-3-12b-it:free",
             "google/gemma-3-27b-it:free",
-            "qwen/qwq-32b:free",
-            "nousresearch/deephermes-3-llama-3-8b-preview:free",
-            "cognitivecomputations/dolphin3.0-r1-mistral-24b:free",
-            "cognitivecomputations/dolphin3.0-mistral-24b:free",
-            "cognitivecomputations/dolphin3.0-mistral-24b:free",
-            "mistralai/mistral-small-24b-instruct-2501:free",
-            "deepseek/deepseek-r1-distill-qwen-14b:free",
-            "deepseek/deepseek-r1-distill-llama-70b:free",
-            "deepseek/deepseek-r1:free",
             "google/gemini-2.0-flash-exp:free",
-            "qwen/qwen-2.5-coder-32b-instruct:free",
-            "meta-llama/llama-3.2-11b-vision-instruct:free",
-            "mistralai/mistral-7b-instruct:free",
-            "openrouter/sonoma-dusk-alpha",
-            "openrouter/sonoma-sky-alpha"
+            "meta-llama/llama-3.3-70b-instruct:free",
+            "meta-llama/llama-3.2-3b-instruct:free",
+            "nousresearch/hermes-3-llama-3.1-405b:free",
+            "mistralai/mistral-7b-instruct:free"
         ]
         
         # SAM models organized by category
@@ -112,9 +87,24 @@ class LLMConnections:
             "call_sam_reasoning_llm",
             "call_sam_text_llm",
             "call_sam_image_llm",
-            "call_sam_audio_llm"
+            "call_sam_audio_llm",
+            "call_cohere_embed",
+            "call_glm_llm",
+            "safe_to_dict"
         ]
-
+    
+    def safe_to_dict(self, text: str):
+        import re, json
+        try:
+            # Extract the first JSON object from the text using regex
+            match = re.search(r'\{.*\}', text, re.DOTALL)
+            if match is None:
+                return {"error": "No JSON object found in text"}
+            json_str = match.group()
+            return json.loads(json_str)
+        except Exception as e:
+            return {"error": f"Invalid JSON or parsing failed: {e}"}
+        
     def call_open_free_llm(self, llm_name: str, api_key: str, prompt: str):
         """
         Call OpenRouter API with the given model, token, and prompt.
@@ -186,9 +176,7 @@ class LLMConnections:
             ],
             extra_body={"search_mode": "web"}  # optional extra params
         ) 
-        # Ensure we always return a str (client may return None for content)
-        content = getattr(resp.choices[0].message, "content", None)
-        return content or ""
+        return resp.choices[0].message.content
 
     def call_huggingface_llm(self, prompt: str, api_key: str, model_name: str = "mistralai/Mistral-7B-Instruct-v0.2:featherless-ai"):
         """
@@ -375,11 +363,18 @@ class LLMConnections:
         except Exception as e:
             return f"An error occurred: {e}"
 
-    def call_sam_audio_llm(self, api_key: str, model_name: str, audio_file_path: str, response_format: Literal["text", "srt", "vtt"] = "text") -> str:
+    def call_sam_audio_llm(self, api_key: str, model_name: str, audio_file_path: str, response_format: str = "text"):
         """
         Call SambaNova SAM API for audio transcription models.
-
-        Returns the transcribed text as a string. Handles several response shapes returned by clients.
+        
+        Parameters:
+            api_key (str): The SambaNova API key for authentication
+            model_name (str): The name of the SAM audio model to use
+            audio_file_path (str): Path to the audio file to transcribe
+            response_format (str, optional): The response format. Defaults to "text"
+            
+        Returns:
+            str: The transcribed text. Returns a message indicating an error if the API call fails
         """
         if not api_key:
             return "Error: API key is missing."
@@ -392,7 +387,7 @@ class LLMConnections:
 
         try:
             from openai import OpenAI
-
+            
             client = OpenAI(
                 api_key=api_key,
                 base_url="https://api.sambanova.ai/v1",
@@ -404,18 +399,126 @@ class LLMConnections:
                     file=audio,
                     response_format=response_format,
                 )
-
-            # Normalize different possible response shapes to a string
-            if isinstance(response, str):
-                return response
-            if isinstance(response, dict):
-                return response.get("text", "") or ""
-            # Some client objects expose `.text` attribute
-            if hasattr(response, "text") and getattr(response, "text") is not None:
-                return getattr(response, "text")
-            return str(response)
+            return response
 
         except Exception as e:
             return f"An error occurred: {e}"
+
+    def call_cohere_embed(self, api_key: str, texts: list, model: str = "embed-english-v3.0", input_type: str = "classification", truncate: str = "NONE"):
+        """
+        Call Cohere Embedding API to generate embeddings for texts.
+        
+        Parameters:
+            api_key (str): The Cohere API key for authentication
+            texts (list): A list of text strings to generate embeddings for
+            model (str, optional): The Cohere embedding model to use. 
+                                 Defaults to "embed-english-v3.0"
+            input_type (str, optional): The type of input for embeddings. 
+                                      Defaults to "classification"
+            truncate (str, optional): How to handle text truncation. 
+                                    Defaults to "NONE"
+            
+        Returns:
+            list: The embeddings list. Returns an error message if the API call fails
+            
+        Example:
+            llm = LLMConnections()
+            texts = ["Hello world", "How are you?"]
+            embeddings = llm.call_cohere_embed(
+                api_key="your-cohere-api-key",
+                texts=texts,
+                model="embed-english-v3.0",
+                input_type="classification"
+            )
+            print(embeddings)
+        """
+        if not api_key:
+            return {"error": "API key is missing."}
+        if not texts:
+            return {"error": "Texts list is empty."}
+        if not isinstance(texts, list):
+            return {"error": "Texts must be a list."}
+        
+        try:
+            import cohere
+            
+            co = cohere.Client(api_key)
+            
+            response = co.embed(
+                model=model,
+                texts=texts,
+                input_type=input_type,
+                truncate=truncate
+            )
+            
+            return response.embeddings
+        
+        except Exception as e:
+            return {"error": f"An error occurred: {e}"}
+
+    def call_glm_llm(self, api_key: str, prompt: str, model: str = "GLM-4.5-Flash", system_prompt: str = "You are a useful AI assistant.", temperature: float = 0.6, max_tokens: int = 1024):
+        """
+        Call GLM API for chat completions.
+        
+        Parameters:
+            api_key (str): The GLM API key for authentication
+            prompt (str): The user's message/prompt
+            model (str, optional): The GLM model to use. Defaults to "GLM-4.5-Flash"
+            system_prompt (str, optional): The system message. Defaults to "You are a useful AI assistant."
+            temperature (float, optional): The sampling temperature. Defaults to 0.6
+            max_tokens (int, optional): Maximum tokens in response. Defaults to 1024
+            
+        Returns:
+            str: The response content from the GLM model. Returns an error message if the API call fails
+            
+        Example:
+            llm = LLMConnections()
+            response = llm.call_glm_llm(
+                api_key="your-glm-api-key",
+                prompt="Please tell us about artificial intelligence."
+            )
+            print(response)
+        """
+        if not api_key:
+            return "Error: API key is missing."
+        if not prompt:
+            return "Error: Prompt is missing."
+        
+        try:
+            import requests
+            
+            url = "https://api.z.ai/api/paas/v4/chat/completions"
+            
+            payload = {
+                "model": model,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": system_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "stream": False
+            }
+            
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.post(url, json=payload, headers=headers)
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return {"error": f"API request failed with status code {response.status_code}: {response.text}"}
+        
+        except Exception as e:
+            return {"error": f"An error occurred: {e}"}
 
 
