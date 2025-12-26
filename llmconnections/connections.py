@@ -94,8 +94,36 @@ class LLMConnections:
             "call_sam_audio_llm",
             "call_cohere_embed",
             "call_glm_llm",
-            "safe_to_dict"
+            "safe_to_dict",
+            "get_embedding"
         ]
+   
+
+
+
+    def get_embedding(text: str) -> list[float]:
+        import requests
+        OLLAMA_EMBED_URL = "http://localhost:11434/api/embeddings"
+        MODEL_NAME = "nomic-embed-text"
+        """
+        Generate embedding using local Ollama model.
+    
+        Args:
+            text (str): Input text
+    
+        Returns:
+            list[float]: Vector embedding
+        ITS HAS 768 vector length
+        """
+        payload = {
+            "model": MODEL_NAME,
+            "prompt": text
+        }
+    
+        response = requests.post(OLLAMA_EMBED_URL, json=payload, timeout=30)
+        response.raise_for_status()
+    
+        return response.json()["embedding"]
     
     def safe_to_dict(self, text: str):
         import re, json
