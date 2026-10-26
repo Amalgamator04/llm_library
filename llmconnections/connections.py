@@ -94,6 +94,7 @@ class LLMConnections:
             "call_sam_audio_llm",
             "call_cohere_embed",
             "call_glm_llm",
+            "call_gemini_llm",
             "safe_to_dict",
             "get_embedding"
         ]
@@ -553,4 +554,63 @@ class LLMConnections:
         except Exception as e:
             return {"error": f"An error occurred: {e}"}
 
+    def call_gemini_llm(
+        self,
+        api_key: str,
+        model_name: str = "gemini-2.5-flash",
+        prompt: str = "",
+        texts: list[str] | None = None,
+        image_paths: list[str] | None = None,
+        mime_type: str = "image/jpeg",
+    ) -> str:
+        """
+        Call Google Gemini models with text and/or images.
+
+        Parameters:
+            api_key (str): Your Gemini API key.
+            model_name (str): Gemini model name, e.g. "gemini-2.5-flash".
+            prompt (str): Main instruction for the model.
+            texts (Optional[List[str]]): Optional extra text parts.
+            image_paths (Optional[List[str]]): Optional paths to image files.
+            mime_type (str): MIME type for images. Defaults to "image/jpeg".
+
+        Returns:
+            str: The model response text.
+        """
+        if not api_key:
+            return "Error: API key is missing."
+        if not prompt:
+            return "Error: Prompt is missing."
+
+        try:
+            from typing import List, Union
+            from google import genai
+            from google.genai import types
+
+            client = genai.Client(api_key=api_key)
+            contents: List[Union[str, types.Part]] = [prompt]
+
+            if texts:
+                contents.extend(texts)
+
+            if image_paths:
+                for path in image_paths:
+                    with open(path, "rb") as image_file:
+                        img_bytes = image_file.read()
+
+                    img_part = types.Part.from_bytes(
+                        data=img_bytes,
+                        mime_type=mime_type,
+                    )
+                    contents.append(img_part)
+
+            response = client.models.generate_content(
+                model=model_name,
+                contents=contents,
+            )
+
+            return getattr(response, "text", str(response))
+
+        except Exception as e:
+            return f"An error occurred: {e}"
 
